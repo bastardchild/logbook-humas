@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('nama_kegiatan');
             $table->date('tanggal');
+            $table->time('jam');
             $table->string('lokasi');
             $table->foreignId('jenis_kegiatan_id')->constrained('jenis_kegiatan');
             $table->string('surat_tugas')->nullable();
             $table->string('link_drive')->nullable();
+            $table->string('link_website')->nullable();
             $table->text('catatan')->nullable();
             $table->timestamps();
         });

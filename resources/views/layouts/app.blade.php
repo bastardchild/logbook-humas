@@ -1,13 +1,16 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>@yield('title', 'Logbook Humas')</title>
+    <link rel="icon" href="{{ asset('unmer.png') }}" type="image/x-icon">
+
 
     <!-- Pico CSS (CDN) -->
     <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"> -->
-   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.orange.min.css" >
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.orange.min.css" > 
+    <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
     <!-- optional small custom style -->
     <style>
@@ -46,13 +49,17 @@
     @stack('styles')
 </head>
 
-<body>
+<body id="app">
 <header class="container-fluid">
   <nav class="container">
     <ul>
-      <li><a href="{{ route('kegiatan.index') }}"><strong>Logbook Humas</strong></a></li>
-      <li><a href="{{ route('kegiatan.index') }}">Daftar Kegiatan</a></li>
-      <li><a href="{{ route('kegiatan.create') }}">Tambah Kegiatan</a></li>
+        <li><a href="{{ route('kegiatan.index') }}">Daftar Kegiatan</a></li>
+    @if(session('editor_auth'))
+        <li><a href="{{ route('kegiatan.create') }}">Tambah Kegiatan</a></li>
+        <li><a role="button" href="{{ route('editor.logout') }}">Logout</a></li>
+    @else
+        <li><a role="button" href="{{ route('editor.login') }}">Login</a></li>
+    @endif
     </ul>
 
     <ul>
@@ -94,6 +101,27 @@
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
     });
+</script>
+
+<script>
+function hapusKegiatan(id) {
+    if (!confirm('Yakin ingin menghapus kegiatan ini?')) return;
+
+    fetch(`{{ url('/kegiatan') }}/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(res => {
+        if (res.ok) {
+            location.reload();
+        } else {
+            alert('Gagal menghapus data');
+        }
+    });
+}
 </script>
 
 @stack('scripts')

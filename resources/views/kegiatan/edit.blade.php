@@ -91,7 +91,7 @@
         <button type="submit">
             Update
         </button>
-        <a href="{{ route('kegiatan.index') }}" class="secondary">
+        <a href="{{ route('kegiatan.index') }}" class="contrast" style="font-size: 36px;">
             Batal
         </a>
     </form>

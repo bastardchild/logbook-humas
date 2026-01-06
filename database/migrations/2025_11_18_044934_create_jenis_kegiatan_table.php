@@ -11,12 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('nama');
             $table->timestamps();
-        });
-
-        DB::table('jenis_kegiatan')->insert([
-            ['nama' => 'Internal', 'created_at' => now(), 'updated_at' => now()],
-            ['nama' => 'Eksternal', 'created_at' => now(), 'updated_at' => now()],
-        ]);
+        });        
     }
     public function down() {
         Schema::dropIfExists('jenis_kegiatan');

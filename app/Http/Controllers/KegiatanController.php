@@ -6,52 +6,60 @@ use Illuminate\Http\Request;
 use App\Models\Kegiatan;   
 use App\Models\Anggota;
 use App\Models\JenisKegiatan;
-
+use Illuminate\Support\Facades\Storage;
 
 class KegiatanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data = Kegiatan::with('anggota')->get();
-        return view('kegiatan.index', compact('data'));
+        $view = $request->query('view', 'card');
+
+        $data = Kegiatan::with(['jenis', 'anggota'])
+            ->orderBy('tanggal', 'desc')
+            ->orderBy('jam', 'desc')
+            ->paginate(32);
+
+        return view('kegiatan.index', compact('data', 'view'));
     }
 
     public function create()
     {
         $jenisKegiatan = JenisKegiatan::all();
         $anggota = Anggota::all();
+
         return view('kegiatan.create', compact('jenisKegiatan', 'anggota'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nama_kegiatan'     => 'required',
+            'nama_kegiatan'     => 'required|string',
             'tanggal'           => 'required|date',
             'jam'               => 'required|date_format:H:i',
-            'lokasi'            => 'required',
-            'jenis_kegiatan_id' => 'required',
+            'lokasi'            => 'required|string',
+            'jenis_kegiatan_id' => 'required|exists:jenis_kegiatan,id',
             'link_drive'        => 'nullable|url',
             'link_website'      => 'nullable|url',
             'catatan'           => 'nullable|string',
-            'surat_tugas'       => 'nullable|file|mimes:pdf',
+            'surat_tugas'       => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        // Upload PDF
+        // Upload PDF ke storage/app/public/surat_tugas
         if ($request->hasFile('surat_tugas')) {
-            $validated['surat_tugas'] = $request->file('surat_tugas')->store('surat_tugas');
+            $validated['surat_tugas'] = $request
+                ->file('surat_tugas')
+                ->store('surat_tugas', 'public');
         }
 
-        // Simpan kegiatan
         $kegiatan = Kegiatan::create($validated);
 
-        // Sync anggota petugas
         if ($request->has('anggota')) {
             $kegiatan->anggota()->sync($request->anggota);
         }
 
-        return redirect()->route('kegiatan.index')
-                        ->with('success', 'Kegiatan berhasil disimpan!');
+        return redirect()
+            ->route('kegiatan.index')
+            ->with('success', 'Kegiatan berhasil disimpan!');
     }
 
     public function edit(Kegiatan $kegiatan)
@@ -59,7 +67,6 @@ class KegiatanController extends Controller
         $jenisKegiatan = JenisKegiatan::all();
         $anggota = Anggota::all();
 
-        // load relasi anggota
         $kegiatan->load('anggota');
 
         return view('kegiatan.edit', compact(
@@ -72,36 +79,69 @@ class KegiatanController extends Controller
     public function update(Request $request, Kegiatan $kegiatan)
     {
         $validated = $request->validate([
-            'nama_kegiatan'     => 'required',
+            'nama_kegiatan'     => 'required|string',
             'tanggal'           => 'required|date',
             'jam'               => 'required|date_format:H:i',
-            'lokasi'            => 'required',
-            'jenis_kegiatan_id' => 'required',
+            'lokasi'            => 'required|string',
+            'jenis_kegiatan_id' => 'required|exists:jenis_kegiatan,id',
             'link_drive'        => 'nullable|url',
             'link_website'      => 'nullable|url',
             'catatan'           => 'nullable|string',
-            'surat_tugas'       => 'nullable|file|mimes:pdf',
+            'surat_tugas'       => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        // Upload PDF baru (jika ada)
+        // Upload PDF baru (hapus yang lama)
         if ($request->hasFile('surat_tugas')) {
-            $validated['surat_tugas'] =
-                $request->file('surat_tugas')->store('surat_tugas');
+
+            if (
+                $kegiatan->surat_tugas &&
+                Storage::disk('public')->exists($kegiatan->surat_tugas)
+            ) {
+                Storage::disk('public')->delete($kegiatan->surat_tugas);
+            }
+
+            $validated['surat_tugas'] = $request
+                ->file('surat_tugas')
+                ->store('surat_tugas', 'public');
         }
 
-        // Update kegiatan
         $kegiatan->update($validated);
 
-        // Sync anggota
         if ($request->has('anggota')) {
             $kegiatan->anggota()->sync($request->anggota);
         } else {
             $kegiatan->anggota()->detach();
         }
 
-        return redirect()->route('kegiatan.index')
+        return redirect()
+            ->route('kegiatan.index')
             ->with('success', 'Kegiatan berhasil diperbarui!');
     }
 
-}
+   public function destroy(Kegiatan $kegiatan)
+    {
+        if (
+            $kegiatan->surat_tugas &&
+            Storage::disk('public')->exists($kegiatan->surat_tugas)
+        ) {
+            Storage::disk('public')->delete($kegiatan->surat_tugas);
+        }
 
+        $kegiatan->anggota()->detach();
+        $kegiatan->delete();
+
+        // ✅ JIKA REQUEST AJAX (fetch)
+        if (request()->expectsJson()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Kegiatan berhasil dihapus'
+            ]);
+        }
+
+        // ✅ JIKA BUKAN AJAX (form biasa)
+        return redirect()
+            ->route('kegiatan.index')
+            ->with('success', 'Kegiatan berhasil dihapus!');
+    }
+
+}
