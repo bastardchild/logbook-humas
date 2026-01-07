@@ -1,52 +1,83 @@
 @push('styles')
-<style>    
-    /* shuffle.js */
+<style>
     .kegiatan-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1rem;
-    }
-    .kegiatan-item {
-        width: 25%;
-        padding: 0 0.5rem;
-        margin-top: 0.5rem;
-    }
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+}
 
-    .kegiatan-grid .card {
-        padding: 1rem;
-        border-radius: 10px;
-        background: #020617;
-        color: #e5e7eb;
-        box-shadow: 0 4px 12px rgba(0,0,0,.2);
-    }
+.kegiatan-item {
+    padding: 0 0.5rem;
+    margin-top: 0.5rem;
+}
 
-    .kegiatan-grid .card header {
-        margin-bottom: .5rem;
+/* Desktop ≥ 1024px → 4 kolom */
+@media (min-width: 1024px) {
+    .kegiatan-grid {
+        grid-template-columns: repeat(4, 1fr);
     }
+}
 
-    .kegiatan-grid .card small {
-        display: block;
-        color: #94a3b8;
+/* Tablet ≥ 640px → 2 kolom */
+@media (min-width: 640px) and (max-width: 1023px) {
+    .kegiatan-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
+}
 
-    .kegiatan-grid p{
-        font-size: 13px;
+/* Mobile < 640px → 1 kolom */
+@media (max-width: 639px) {
+    .kegiatan-grid {
+        grid-template-columns: repeat(1, 1fr);
     }
-
-    .kegiatan-grid header{
-        background: transparent;
-    }
-
-    .kegiatan-toolbar {
-        margin-bottom: 1rem;
-    }
-
-    .kegiatan-toolbar input {
+    .kegiatan-item{
         width: 100%;
-        padding: .5rem .75rem;
-        border-radius: 6px;
     }
+}
 
+/* =====================
+   Card (Pico variables)
+   ===================== */
+
+.kegiatan-grid .card {
+    padding: 1rem;
+    border-radius: var(--pico-border-radius);
+    background: var(--pico-background-color);
+    color: var(--pico-color);
+    box-shadow: var(--pico-box-shadow);
+    border: var(--pico-border-width) solid var(--pico-form-element-border-color);
+}
+
+.kegiatan-grid .card header {
+    margin-bottom: .5rem;
+    background: transparent;
+}
+
+.kegiatan-grid .card small {
+    display: block;
+    color: var(--muted-color);
+}
+
+.kegiatan-grid p {
+    font-size: 0.8125rem;
+    color: var(--color);
+}
+
+/* =====================
+   Toolbar & Search
+   ===================== */
+
+.kegiatan-toolbar {
+    margin-bottom: 1rem;
+}
+
+.kegiatan-toolbar input {
+    width: 100%;
+    padding: .5rem .75rem;
+    border-radius: var(--pico-border-radius);
+    background: var(--background-color);
+    color: var(--color);
+}
 </style>
 @endpush
 

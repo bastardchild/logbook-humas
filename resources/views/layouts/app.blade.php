@@ -90,18 +90,19 @@
 <script>
     const themeSwitch = document.getElementById('themeSwitch');
 
-    // Load theme from localStorage
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    // DEFAULT DARK
+    const savedTheme = localStorage.getItem('theme') ?? 'dark';
+
     document.documentElement.setAttribute('data-theme', savedTheme);
     themeSwitch.checked = savedTheme === 'dark';
 
-    // Toggle event
     themeSwitch.addEventListener('change', () => {
         const theme = themeSwitch.checked ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
     });
 </script>
+
 
 <script>
 function hapusKegiatan(id) {

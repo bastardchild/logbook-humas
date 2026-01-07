@@ -12,33 +12,35 @@
     /* Dark mode Grid.js */
     body .gridjs-container, body .gridjs-tbody, body td.gridjs-td {
         background-color: transparent;
-        color: #e5e7eb;
+        color: var(--pico-color);
     }
 
     body .gridjs-th {
-        background-color: #020617;
-        color: #f8fafc;
-        border-color: #fff;
+        background-color: var(--pico-background-color);
+        color: var(--pico-color);
+        border-color: var(--pico-h1-color);
     }
 
     body .gridjs-td {
-        border-color: #fff;
+        border-color: var(--pico-h1-color);
     }
 
     body .gridjs-footer {
-        background-color: #020617;
-        color: #fff;
+        background-color: var(--pico-background-color);
+        color: var(--pico-color);
     }
     body .gridjs-pagination{
-        color: #fff;
+        color: var(--pico-color);
     }
 
     body .gridjs-pagination button {
-        background-color: #020617;
+        background-color: var(--pico-background-color);
         color: #000;
         border-color: #334155;
+    }
+    body .gridjs-wrapper {
+        border: 1px solid var(--pico-form-element-border-color);       
     }  
-
 </style>
 @endpush
 

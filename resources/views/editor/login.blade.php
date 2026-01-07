@@ -9,10 +9,6 @@
         <p>Masukkan password editor untuk mengelola kegiatan.</p>
     </header>
 
-    @if(session('error'))
-        <mark>{{ session('error') }}</mark>
-    @endif
-
     <form method="POST">
         @csrf
 
@@ -28,4 +24,10 @@
         </button>
     </form>
 </article>
+
+@if ($errors->any())
+    <script>
+        alert("{{ $errors->first() }}");
+    </script>
+@endif
 @endsection
