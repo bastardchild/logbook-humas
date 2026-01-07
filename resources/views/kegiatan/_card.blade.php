@@ -50,6 +50,10 @@
 </style>
 @endpush
 
+<div class="kegiatan-toolbar pt-3">
+    <input type="text" id="search" placeholder="Search kegiatan by name, jenis, or lokasi...">
+</div>
+
 <div class="kegiatan-grid" id="kegiatanGrid">
         @foreach($data as $k)
             <div class="kegiatan-item"

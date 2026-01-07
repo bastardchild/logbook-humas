@@ -23,7 +23,7 @@
                     Google Drive
                 </a>
             @elseif($k->surat_tugas)
-                <a href="{{ asset('storage/'.$k->surat_tugas) }}" target="_blank">
+                <a href="{{ asset($k->surat_tugas) }}" target="_blank">
                     Surat Tugas (PDF)
                 </a>
             @else

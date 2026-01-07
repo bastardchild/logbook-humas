@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 use App\Models\Kegiatan;   
 use App\Models\Anggota;
 use App\Models\JenisKegiatan;
-use Illuminate\Support\Facades\Storage;
+// use Illuminate\Support\Facades\Storage;
+
 
 class KegiatanController extends Controller
 {
@@ -28,7 +31,7 @@ class KegiatanController extends Controller
         $anggota = Anggota::all();
 
         return view('kegiatan.create', compact('jenisKegiatan', 'anggota'));
-    }
+    }    
 
     public function store(Request $request)
     {
@@ -44,11 +47,26 @@ class KegiatanController extends Controller
             'surat_tugas'       => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        // Upload PDF ke storage/app/public/surat_tugas
+        // Upload langsung ke public/surat_tugas
         if ($request->hasFile('surat_tugas')) {
-            $validated['surat_tugas'] = $request
-                ->file('surat_tugas')
-                ->store('surat_tugas', 'public');
+            $file = $request->file('surat_tugas');
+
+            $filename = time() . '-' . Str::slug(pathinfo(
+                $file->getClientOriginalName(),
+                PATHINFO_FILENAME
+            )) . '.pdf';
+
+            $destination = public_path('surat_tugas');
+
+            // pastikan folder ada
+            if (!File::exists($destination)) {
+                File::makeDirectory($destination, 0755, true);
+            }
+
+            $file->move($destination, $filename);
+
+            // simpan path relatif ke DB
+            $validated['surat_tugas'] = 'surat_tugas/' . $filename;
         }
 
         $kegiatan = Kegiatan::create($validated);
@@ -90,19 +108,32 @@ class KegiatanController extends Controller
             'surat_tugas'       => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
-        // Upload PDF baru (hapus yang lama)
         if ($request->hasFile('surat_tugas')) {
 
-            if (
-                $kegiatan->surat_tugas &&
-                Storage::disk('public')->exists($kegiatan->surat_tugas)
-            ) {
-                Storage::disk('public')->delete($kegiatan->surat_tugas);
+            // hapus file lama
+            if ($kegiatan->surat_tugas) {
+                $oldPath = public_path($kegiatan->surat_tugas);
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
             }
 
-            $validated['surat_tugas'] = $request
-                ->file('surat_tugas')
-                ->store('surat_tugas', 'public');
+            $file = $request->file('surat_tugas');
+
+            $filename = time() . '-' . Str::slug(pathinfo(
+                $file->getClientOriginalName(),
+                PATHINFO_FILENAME
+            )) . '.pdf';
+
+            $destination = public_path('surat_tugas');
+
+            if (!File::exists($destination)) {
+                File::makeDirectory($destination, 0755, true);
+            }
+
+            $file->move($destination, $filename);
+
+            $validated['surat_tugas'] = 'surat_tugas/' . $filename;
         }
 
         $kegiatan->update($validated);
@@ -120,25 +151,30 @@ class KegiatanController extends Controller
 
    public function destroy(Kegiatan $kegiatan)
     {
-        if (
-            $kegiatan->surat_tugas &&
-            Storage::disk('public')->exists($kegiatan->surat_tugas)
-        ) {
-            Storage::disk('public')->delete($kegiatan->surat_tugas);
+        // Hapus file surat tugas di public/
+        if ($kegiatan->surat_tugas) {
+            $path = public_path($kegiatan->surat_tugas);
+
+            if (File::exists($path)) {
+                File::delete($path);
+            }
         }
 
+        // Lepas relasi anggota
         $kegiatan->anggota()->detach();
+
+        // Hapus data kegiatan
         $kegiatan->delete();
 
         // ✅ JIKA REQUEST AJAX (fetch)
         if (request()->expectsJson()) {
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Kegiatan berhasil dihapus'
             ]);
         }
 
-        // ✅ JIKA BUKAN AJAX (form biasa)
+        // ✅ JIKA BUKAN AJAX
         return redirect()
             ->route('kegiatan.index')
             ->with('success', 'Kegiatan berhasil dihapus!');
